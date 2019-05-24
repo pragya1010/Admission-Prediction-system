@@ -15,6 +15,48 @@ class Admission_Predictor:
         os.chdir(path)
         self.data = pd.read_csv("Admission_Predict.csv")
 
+    def plot_data(self):
+        cols = self.data.columns
+        # print(cols)
+        features = cols[1:-1]
+        target = cols[-1]
+        # print("Features: ", features)
+
+        #Plots
+        plt.figure(figsize=(20, 20))
+        for i in range(len(features)):
+            plt.subplot(3, 3, i + 1)
+            plt.scatter(self.data[features[i]], self.data['Chance of Admit '])
+            plt.title(features[i])
+
+        plt.savefig('features.pdf')
+        plt.show()
+
+        # Median student chances
+        features2 = cols[[3, 4, 5, 7]]
+        print(features2)
+        median = self.data['Chance of Admit '].median()
+        print("Median student chances",median)
+
+
+        # Bar Plots
+        df = self.data
+        plt.figure(figsize=(20, 10))
+        for j in range(len(features2)):
+            plt.subplot(2, 2, j + 1)
+            values = df[features2[j]].unique()
+            ser = pd.Series(range(len(values)), index=values, dtype='float64')
+            for i in range(len(values)):
+                ser[values[i]] = df[df[features2[j]] == values[i]]['Chance of Admit '].mean()
+            ser = ser.sort_index()
+            # print(values)
+            # print(ser)
+            plt.bar(ser.index, ser.values, width=0.3)
+            plt.title(features[j])
+            plt.plot([0, len(values)], [median, median], 'k-', lw=1, dashes=[2, 2])
+        plt.savefig('featuresVsMedian.pdf')
+        plt.show()
+
     def model_decision(self):
         # data Pre - processing
         cols = self.data.columns
@@ -36,7 +78,7 @@ class Admission_Predictor:
         print(self.model)
 
         # Visualization
-        with open("classifier1.dot", "w") as f:
+        with open("classifier.dot", "w") as f:
             f = tree.export_graphviz(self.model, feature_names=features, class_names=target, out_file=f)
 
 
@@ -75,14 +117,15 @@ train_X, test_X, train_y, test_y = ad.model_decision()
 # 
 # print(type(train_X))
 # print(len(ad.predicted_full))
+ad.plot_data()
 ad.error_calc(test_y)
 ad.output_results()
-# 
+#
 # # l = [310,108,4,4.5,4.5,8.61,0]
 # l= [337,118,4,4.5,4.5,9.65,1]
-# 
+#
 # df= pd.DataFrame(columns=['A','B','C','D','E','F','G'])
-# 
+#
 # df = df.append(pd.DataFrame([l],columns=df.columns))
 # print(df)
 # pred = ad.predict(df)
