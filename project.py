@@ -6,7 +6,9 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 import os
-
+import seaborn as sns
+sns.set(style='white')
+sns.set(style='whitegrid', color_codes=True)
 
 
 class Admission_Predictor:
@@ -26,6 +28,7 @@ class Admission_Predictor:
         plt.figure(figsize=(20, 20))
         for i in range(len(features)):
             plt.subplot(3, 3, i + 1)
+            # print(features[i])
             plt.scatter(self.data[features[i]], self.data['Chance of Admit '])
             plt.title(features[i])
 
@@ -34,9 +37,24 @@ class Admission_Predictor:
 
         # Median student chances
         features2 = cols[[3, 4, 5, 7]]
-        print(features2)
+        print('features2',features2)
+        means = self.data['Chance of Admit '].mean()
         median = self.data['Chance of Admit '].median()
+        print("Mean student chances", means)
         print("Median student chances",median)
+
+        # Considering the best correalations features
+        main_features = ['CGPA', 'GRE Score', 'TOEFL Score']
+        for i in range (len(main_features)):
+            plt.figure(figsize=(20, 6))
+            plt.subplot(1, 2, 1)
+            sns.distplot(self.data[main_features[i]])
+            plt.title('Distributed ' + main_features[i] + ' of Applicants')
+
+            plt.subplot(1, 2, 2)
+            sns.regplot(self.data[main_features[i]], self.data['Chance of Admit '])
+            plt.title(main_features[i] + ' vs Chance of Admit')
+            plt.savefig(main_features[i] +'.pdf')
 
 
         # Bar Plots
@@ -52,7 +70,7 @@ class Admission_Predictor:
             # print(values)
             # print(ser)
             plt.bar(ser.index, ser.values, width=0.3)
-            plt.title(features[j])
+            plt.title(features2[j])
             plt.plot([0, len(values)], [median, median], 'k-', lw=1, dashes=[2, 2])
         plt.savefig('featuresVsMedian.pdf')
         plt.show()
