@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn import tree
+from sklearn import tree, linear_model
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
@@ -9,6 +9,8 @@ import os
 import seaborn as sns
 sns.set(style='white')
 sns.set(style='whitegrid', color_codes=True)
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class Admission_Predictor:
@@ -16,6 +18,11 @@ class Admission_Predictor:
         path = '/Users/pragya/PycharmProjects/AI LAB/venv/Admission_Prediction/Data/'
         os.chdir(path)
         self.data = pd.read_csv("Admission_Predict.csv")
+        describe = self.data.describe().transpose()
+        print(describe)
+
+        ### Check Missing values
+        print((self.data.notnull().sum() / len(self.data)).sort_values(ascending=False))
 
     def plot_data(self):
         cols = self.data.columns
@@ -75,6 +82,18 @@ class Admission_Predictor:
         plt.savefig('featuresVsMedian.pdf')
         plt.show()
 
+        # Algo comparision plots
+        Methods = ['Decision Tree Regression', 'Linear Regression']
+        Scores = np.array([self.score1, self.score2])
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.barplot(Methods, Scores)
+        plt.title('Algorithm Prediction Accuracies')
+        plt.ylabel('Accuracy')
+        plt.savefig("Algorithm_Prediction_Accuracies.pdf")
+        plt.show()
+
+
     def model_decision(self):
         # data Pre - processing
         cols = self.data.columns
@@ -90,10 +109,24 @@ class Admission_Predictor:
         train_y = y[:int(0.75*len(X))]
         test_y = y[int(0.75*len(X)):]
 
-        # Training
+        # methods = ['Linear Regression', 'Decision Tree Regression', 'Decision Tree Classifier']
+
+        # Decision tree Regression
         self.model = DecisionTreeRegressor(min_samples_leaf=10,random_state=0,max_leaf_nodes=20)
         self.model.fit(train_X, train_y)
+
+
+        #Linear Model
+        self.model2 = linear_model.LinearRegression()
+        self.model2.fit(train_X, train_y)
+
+        # # Classifier Model
+        # self.model3 = DecisionTreeClassifier()
+        # self.model3.fit(train_X,train_y)
+
         print(self.model)
+        print(self.model2)
+        # print(self.model3)
 
         # Visualization
         with open("classifier.dot", "w") as f:
@@ -103,15 +136,21 @@ class Admission_Predictor:
         # Test data Prediction
         self.predicted = self.model.predict(test_X)
         self.predicted_full = self.model.predict(X)
+        self.score1 = self.model.score(test_X,test_y)
+        print("Score1: ", self.score1)
+
+        self.predicted_2 = self.model.predict(test_X)
+        self.predicted_full_2 = self.model2.predict(X)
+        self.score2 = self.model2.score(test_X, test_y)
+        print("Score2: ", self.score2)
+
+        # self.predicted_3 = self.model3.predict(test_X)
+        # self.predicted_full_3 = self.model3.predict(X)
+        # score3 = self.model3.score(test_X, test_y)
+        # print("Score3: ", score3)
 
         return train_X, test_X, train_y, test_y
 
-    # sample prediction
-    def predict(self,df):
-        train_X, test_X, train_y, test_y = self.model_decision()
-        pred = self.model.predict(df)
-        return pred
-        # predicted = model.predict(train_X)
 
     # Actual - predicted for test/train data
     def error_calc(self, test):
@@ -121,6 +160,7 @@ class Admission_Predictor:
     def output_results(self):
         df1 = pd.DataFrame()
         df1['predictions'] = self.predicted_full
+        df1['predictions_2'] = self.predicted_full_2
         final_df = pd.merge(left=self.data, right=df1, left_index=True, right_index=True)
         final_df['True_Decision'] = final_df['Chance of Admit '].apply(lambda x: "Yes" if x > 0.80 else "No")
         final_df['Decision'] = final_df['predictions'].apply(lambda x: "Yes" if x > 0.80 else "No")
@@ -135,9 +175,10 @@ train_X, test_X, train_y, test_y = ad.model_decision()
 # 
 # print(type(train_X))
 # print(len(ad.predicted_full))
-ad.plot_data()
+
 ad.error_calc(test_y)
 ad.output_results()
+ad.plot_data()
 #
 # # l = [310,108,4,4.5,4.5,8.61,0]
 # l= [337,118,4,4.5,4.5,9.65,1]
