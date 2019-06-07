@@ -25,7 +25,7 @@ class Admission_Predictor:
         ### Check Missing values
         print((self.data.notnull().sum() / len(self.data)).sort_values(ascending=False))
 
-    def plot_data(self):
+    def plot_data(self, test_y):
         cols = self.data.columns
         # print(cols)
         features = cols[1:-1]
@@ -56,18 +56,16 @@ class Admission_Predictor:
         for i in range(len(main_features)):
             print(main_features[i].upper())
             print(linregress(self.data[main_features[i]], self.data['Chance of Admit ']))
-            
+
             plt.figure(figsize=(20, 6))
             plt.subplot(1, 2, 1)
-            sns.distplot(self.data[main_features[i]])
+            sns.distplot(self.data[main_features[i]], kde = False)
             plt.title('Distributed ' + main_features[i] + ' of Applicants')
 
             plt.subplot(1, 2, 2)
             sns.regplot(self.data[main_features[i]], self.data['Chance of Admit '])
             plt.title(main_features[i] + ' vs Chance of Admit')
             plt.savefig(main_features[i] +'.pdf')
-
-        
 
         # Bar Plots
         df = self.data
@@ -79,11 +77,11 @@ class Admission_Predictor:
             for i in range(len(values)):
                 ser[values[i]] = df[df[features2[j]] == values[i]]['Chance of Admit '].mean()
             ser = ser.sort_index()
-            # print(values)
-            # print(ser)
+
             plt.bar(ser.index, ser.values, width=0.3)
             plt.title(features2[j])
             plt.plot([0, len(values)], [median, median], 'k-', lw=1, dashes=[2, 2])
+
         plt.savefig('featuresVsMedian.pdf')
         plt.show()
 
@@ -98,7 +96,13 @@ class Admission_Predictor:
         plt.savefig("Algorithm_Prediction_Accuracies.pdf")
         plt.show()
 
-
+        #Residual Plot
+        plt.scatter(self.predicted_2, self.predicted_2 - test_y, c='g')
+        plt.hlines(y = 0, xmin=0.4, xmax=1)
+        plt.title('Residual plot')
+        plt.ylabel('Residual')
+        plt.savefig("Residual_LR.pdf")
+        plt.show()
 
 
     def model_decision(self):
@@ -151,8 +155,6 @@ class Admission_Predictor:
         print("Intercept-----------", self.model2.intercept_)
 
 
-
-
         return train_X, test_X, train_y, test_y
 
 
@@ -199,7 +201,8 @@ train_X, test_X, train_y, test_y = ad.model_decision()
 
 ad.error_calc(test_y)
 ad.output_results()
-ad.plot_data()
+ad.plot_data(test_y)
+
 #
 # # l = [310,108,4,4.5,4.5,8.61,0]
 # l= [337,118,4,4.5,4.5,9.65,1]
