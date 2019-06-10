@@ -155,8 +155,12 @@ class Admission_Predictor:
         print("Intercept-----------", self.model2.intercept_)
 
 
-        return train_X, test_X, train_y, test_y
-
+        return train_X, test_X, train_y, test_y# sample prediction
+    def predict(self,df):
+        train_X, test_X, train_y, test_y = self.model_decision()
+        pred = self.model.predict(df)
+        return pred
+        # predicted = model.predict(train_X)
 
     # Actual - predicted for test/train data
     def error_calc(self, test):
@@ -195,13 +199,13 @@ class Admission_Predictor:
 ad = Admission_Predictor()
 
 train_X, test_X, train_y, test_y = ad.model_decision()
-# 
-# print(type(train_X))
-# print(len(ad.predicted_full))
-
 ad.error_calc(test_y)
 ad.output_results()
 ad.plot_data(test_y)
+
+
+
+
 
 #
 # # l = [310,108,4,4.5,4.5,8.61,0]
